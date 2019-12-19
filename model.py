@@ -106,11 +106,11 @@ class UniSkip(nn.Module):
         for i, l in enumerate(lengths):
             for j in range(l):
                 mask[i, j] = 1
-        
+
         mask = Variable(mask)
         if USE_CUDA:
             mask = mask.cuda(var.get_device())
-            
+
         return mask
 
     def forward(self, sentences, lengths):
@@ -126,15 +126,15 @@ class UniSkip(nn.Module):
         # mask the predictions, so that loss for beyond-EOS word predictions is cancelled.
         prev_mask = self.create_mask(prev_pred, lengths[:-1])
         next_mask = self.create_mask(next_pred, lengths[1:])
-        
+
         masked_prev_pred = prev_pred * prev_mask
         masked_next_pred = next_pred * next_mask
-        
+
         prev_loss = F.cross_entropy(masked_prev_pred.view(-1, VOCAB_SIZE), sentences[:-1, :].view(-1))
         next_loss = F.cross_entropy(masked_next_pred.view(-1, VOCAB_SIZE), sentences[1:, :].view(-1))
 
         loss = prev_loss + next_loss
-        
+
         _, prev_pred_ids = prev_pred[0].max(1)
         _, next_pred_ids = next_pred[0].max(1)
 
